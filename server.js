@@ -6,13 +6,20 @@ import teacherLessonRouter from './routes/teacher/lessons.routes.js';
 import teacherClassRouter from './routes/teacher/classes.routes.js';
 import teacherRouter from './routes/teacher/teacher.routes.js';
 
+import admin from 'firebase-admin';
+
 configDotenv();
 
 const app = express();
 const PORT = process.env.SERVER_PORT | 8080;
 
+
 app.get('/', (req, res) => {
     res.send('App works')
+})
+
+admin.initializeApp({
+    credential: admin.credential.applicationDefault()
 })
 
 app.use('/auth/', authRouter),

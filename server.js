@@ -5,6 +5,7 @@ import authRouter from './routes/auth.routes.js';
 import teacherLessonRouter from './routes/teacher/lessons.routes.js';
 import teacherClassRouter from './routes/teacher/classes.routes.js';
 import teacherRouter from './routes/teacher/teacher.routes.js';
+import serviceAccount from './firebaseServiceAccountKey.json' with { type: 'json' };
 
 import admin from 'firebase-admin';
 
@@ -13,14 +14,18 @@ configDotenv();
 const app = express();
 const PORT = process.env.SERVER_PORT | 8080;
 
+app.use(express.urlencoded({extended: true}))
+app.use(express.json())
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
 
 app.get('/', (req, res) => {
     res.send('App works')
 })
 
-admin.initializeApp({
-    credential: admin.credential.applicationDefault()
-})
 
 app.use('/auth/', authRouter),
 app.use('/teacher/', teacherRouter)

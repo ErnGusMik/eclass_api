@@ -13,6 +13,13 @@ const addTeacherToClass = async (classID, teacherID) => {
     }
 };
 
-export {
-    addTeacherToClass
-}
+const getClassTeachers = async (classID) => {
+    const teachers = await pool.query(
+        "SELECT u.* FROM users u JOIN class_teachers ct ON u.id = ct.teacher_id WHERE ct.class_id = $1",
+        [classID]
+    );
+    if (teachers.rowCount == 0) return false;
+    return teachers;
+};
+
+export { addTeacherToClass, getClassTeachers };

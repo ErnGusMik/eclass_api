@@ -1,17 +1,20 @@
 import { createClass, getClassData, joinClass } from "../models/classes.model.js";
-import { createUser, verifyIfUserExists } from "../models/users.model.js";
+import { createUser, verifyIfUserExists, verifyRole } from "../models/users.model.js";
 
 const login = async (req, res, next) => {
-    const user = await verifyIfUserExists();
-    console.log(user);
+    const user = await verifyIfUserExists(req.user.uid);
     if (!user) {
         res.status(404).json({
             error: "Not found: User not found. Try /auth/signup",
         });
         return;
     }
-    console.log("shti works");
-    res.send("info received");
+    res.json({
+        name: req.user.name,
+        picture: req.user.picture,
+        email: req.user.email,
+        role: user.role,
+    });
 };
 
 const signup = async (req, res, next) => {
@@ -28,7 +31,8 @@ const signup = async (req, res, next) => {
         req.user.uid,
         req.query.role
     );
-    if (req.query.role == "teacher") {
+    const verifiedRole = verifyRole(userID) // This is needed in case the user tries to sign up again
+    if (req.query.role == "teacher" && req.query.role == verifiedRole) {
         if (!req.body.className || !req.body.classGrade) {
             res.status(400).json({
                 error: "Bad request: Missing request body for role 'teacher'",
@@ -57,8 +61,8 @@ const signup = async (req, res, next) => {
                 error: "Internal server error",
             });
         }
-    } else if (req.query.role == "student") {
-        if (!req.body.classes || req.body.classses.length < 1) {
+    } else if (req.query.role == "student" && req.query.role == verifiedRole) {
+        if (!req.body.classes || req.body.classes.length < 1) {
             return res.status(400).json({
                 error: "Bad request: Missing request body for role 'student'",
             });

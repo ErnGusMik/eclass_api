@@ -45,30 +45,38 @@ const createClass = async (name, grade, teacherID) => {
 const joinClass = async (classCode, studentID) => {
     const res = await pool.query(
         `WITH found_class AS (
-            SELECT id FROM classes WHERE code = $1
+            SELECT id FROM classes WHERE code = $2
         )
         INSERT INTO class_students (student_id, class_id)
-        SELECT $2, id FROM found_class
+        SELECT $1, fc.id
+        FROM found_class fc
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM class_students cs
+            WHERE cs.student_id = $1 AND cs.class_id = fc.id
+        )
         RETURNING class_id;`,
         [studentID, classCode]
     );
     if (res.rowCount == 0) {
-        return false
+        return false;
     }
     return true;
 };
 
 const getClassData = async (classCode) => {
-    const res = await pool.query('SELECT * FROM classes WHERE code = $1', [classCode]);
+    const res = await pool.query("SELECT * FROM classes WHERE code = $1", [
+        classCode,
+    ]);
     if (res.rowCount == 1) {
         const teachers = await getClassTeachers(res.rows[0].id);
         if (!teachers) return false;
         return {
             class: res.rows[0],
-            teachers: teachers.rows
-        }
+            teachers: teachers.rows,
+        };
     }
     return false;
-}
+};
 
 export { createClass, joinClass, getClassData };

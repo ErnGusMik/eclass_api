@@ -22,4 +22,5 @@ const getClassTeachers = async (classID) => {
     return teachers;
 };
 
+
 export { addTeacherToClass, getClassTeachers };

@@ -19,3 +19,23 @@ async function verifyFirebaseToken(req, res, next) {
 }
 
 export default verifyFirebaseToken;
+
+// req.user structure:
+// {
+//   name: '',
+//   picture: '',
+//   iss: '',
+//   aud: '',
+//   auth_time: int,
+//   user_id: '',
+//   sub: '',
+//   iat: int,
+//   exp: int,
+//   email: '',
+//   email_verified: bool,
+//   firebase: {
+//     identities: { 'google.com': [Array], email: [Array] },
+//     sign_in_provider: 'google.com'
+//   },
+//   uid: ''
+// }

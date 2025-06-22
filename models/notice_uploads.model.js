@@ -13,3 +13,7 @@ const uploadWithNotice = async (
     );
     return fileId.rows[0].id;
 };
+
+export {
+    uploadWithNotice
+}

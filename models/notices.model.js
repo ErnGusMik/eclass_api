@@ -2,10 +2,10 @@ import pool from "../config/db.js";
 
 const postNotice = async (title, authorId, content, tags) => {
     const noticeId = await pool.query(
-        "INSERT INTO notices (title, author_id, content, tags, created_at) VALUES ($1, $2, $3, $4, NOW())",
+        "INSERT INTO notices (title, author_id, content, tags, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id",
         [title, authorId, content, tags]
     );
-    return noticeId;
+    return noticeId.rows[0].id;
 };
 
 const getNoticesForTeacher = async (teacherId) => {

@@ -14,6 +14,8 @@ configDotenv();
 const app = express();
 const PORT = process.env.SERVER_PORT | 8080;
 
+app.use("/uploads", express.static("uploads"));
+
 app.use(express.urlencoded({extended: true}))
 app.use(express.json())
 

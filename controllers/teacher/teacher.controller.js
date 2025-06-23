@@ -1,6 +1,6 @@
 import { uploadWithNotice } from "../../models/notice_uploads.model.js";
-import { postNotice } from "../../models/notices.model.js";
-import { verifyIfUserExists } from "../../models/users.model.js";
+import { getNoticesForTeacher, postNotice } from "../../models/notices.model.js";
+import { getName, verifyIfUserExists } from "../../models/users.model.js";
 
 const createNotice = async (req, res, next) => {
     if (!req.body || !req.body.title || !req.body.content || !req.body.tags) {
@@ -59,7 +59,30 @@ const createNotice = async (req, res, next) => {
 };
 
 const getRelevantNotices = async (req, res, next) => {
+ // TODO: you left here... do this now!
+    const user = await verifyIfUserExists(req.user.uid);
+    const notices = await getNoticesForTeacher(user.id);
 
+    const noticesToSend = [];
+
+    for (const notice of notices) {
+        const authorName = await getName(notice.author_id);
+        if (!authorName) {
+            res.status(500).json({
+                error: "Internal server error: Could not get authors"
+            })
+        }
+        noticesToSend.push({
+            title: notice.title,
+            author: authorName,
+            content: notice.content,
+            tags: JSON.parse(notice.tags),
+            createdAt: notice.created_at
+        })
+    }
+    return res.json({
+        notices: noticesToSend
+    })
 };
 
 export { createNotice, getRelevantNotices };

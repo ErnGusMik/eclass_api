@@ -31,7 +31,7 @@ const signup = async (req, res, next) => {
         req.user.uid,
         req.query.role
     );
-    const verifiedRole = verifyRole(userID) // This is needed in case the user tries to sign up again
+    const verifiedRole = await verifyRole(userID) // This is needed in case the user tries to sign up again
     if (req.query.role == "teacher" && req.query.role == verifiedRole) {
         if (!req.body.className || !req.body.classGrade) {
             res.status(400).json({

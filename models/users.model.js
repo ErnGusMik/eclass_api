@@ -28,8 +28,15 @@ const verifyRole = async (userID) => {
     return false;
 }
 
+const getName = async (userId) => {
+    const name = await pool.query('SELECT display_name FROM users WHERE id = $1', [userId])
+    if (name.rowCount == 1) return name.rows[0].display_name;
+    return false;
+}
+
 export {
     verifyIfUserExists,
     createUser,
-    verifyRole
+    verifyRole,
+    getName
 }

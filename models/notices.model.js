@@ -22,11 +22,10 @@ const getNoticesForTeacher = async (teacherId) => {
         )
         SELECT *
         FROM notices
-        WHERE author_id IN (SELECT teacher_id FROM related_teachers);`)
+        WHERE author_id IN (SELECT teacher_id FROM related_teachers);`,
+        [teacherId]
+    );
     return notices.rows;
-}
+};
 
-export {
-    postNotice,
-    getNoticesForTeacher
-}
+export { postNotice, getNoticesForTeacher };

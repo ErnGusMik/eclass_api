@@ -14,6 +14,12 @@ const uploadWithNotice = async (
     return fileId.rows[0].id;
 };
 
+const getUploadsForNotice = async (noticeID) => {
+    const uploads = await pool.query('SELECT * FROM notice_uploads WHERE notice_id = $1', [noticeID]);
+    return uploads.rows
+}
+
 export {
-    uploadWithNotice
+    uploadWithNotice,
+    getUploadsForNotice
 }

@@ -4,6 +4,7 @@ import pool from './config/db.js';
 import authRouter from './routes/auth.routes.js';
 import teacherLessonRouter from './routes/teacher/lessons.routes.js';
 import teacherClassRouter from './routes/teacher/classes.routes.js';
+import noticesRouter from './routes/notices.routes.js';
 import teacherRouter from './routes/teacher/teacher.routes.js';
 import serviceAccount from './firebaseServiceAccountKey.json' with { type: 'json' };
 
@@ -33,6 +34,7 @@ app.use('/auth/', authRouter),
 app.use('/teacher/', teacherRouter)
 app.use('/teacher/lesson/', teacherLessonRouter)
 app.use('/teacher/class/', teacherClassRouter)
+app.use('/notices', noticesRouter)
 
 
 app.listen(PORT, async () => {

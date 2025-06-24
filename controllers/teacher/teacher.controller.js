@@ -77,12 +77,15 @@ const getRelevantNotices = async (req, res, next) => {
             author: authorName,
             content: notice.content,
             tags: JSON.parse(notice.tags),
-            createdAt: notice.created_at
+            createdAt: notice.created_at,
+            id: notice.id,
         })
     }
     return res.json({
         notices: noticesToSend
     })
 };
+
+
 
 export { createNotice, getRelevantNotices };

@@ -18,6 +18,7 @@ const getSpecificNotice = async (req, res, next) => {
             });
         }
         const uploads = await getUploadsForNotice(notice.id);
+
         let authorName = ''
         if (notice.author_id == user.id) {
             authorName = req.user.name
@@ -39,7 +40,7 @@ const getSpecificNotice = async (req, res, next) => {
         for (const file of uploads) {
             noticeToSend.uploads.push({
                 name: file.original_name,
-                size: file.size,
+                size: file.file_size,
                 location: '/uploads/' + file.file_name,
                 mimetype: file.mime_type
             })

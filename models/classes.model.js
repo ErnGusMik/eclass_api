@@ -32,7 +32,7 @@ const createClass = async (name, grade, teacherID) => {
     if (id == null) {
         return 500;
     }
-    console.log(teacherID);
+
     const teacherAdded = await addTeacherToClass(id, teacherID);
 
     if (teacherAdded) {
@@ -79,4 +79,9 @@ const getClassData = async (classCode) => {
     return false;
 };
 
-export { createClass, joinClass, getClassData };
+const getAllClasses = async (teacherID) => {
+    const classes = await pool.query('SELECT c.* FROM classes c JOIN class_teachers ct ON c.id = ct.class_id WHERE ct.teacher_id = $1', [teacherID]);
+    return classes.rows;
+}
+
+export { createClass, joinClass, getClassData, getAllClasses };

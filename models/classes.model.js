@@ -84,4 +84,10 @@ const getAllClasses = async (teacherID) => {
     return classes.rows;
 }
 
-export { createClass, joinClass, getClassData, getAllClasses };
+const getClassFromId = async (classID) => {
+    const classData = await pool.query('SELECT * FROM classes WHERE id = $1', [classID]);
+    if (classData.rowCount == 0) return false;
+    return classData.rows
+}
+
+export { createClass, joinClass, getClassData, getAllClasses, getClassFromId };

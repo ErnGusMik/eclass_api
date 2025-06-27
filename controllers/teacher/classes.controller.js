@@ -1,5 +1,6 @@
-import { createClass, getAllClasses } from "../../models/classes.model.js";
-import { verifyIfUserExists } from "../../models/users.model.js"
+import { getClassTeachers } from "../../models/class_teachers.model.js";
+import { createClass, getAllClasses, getClassData, getClassFromId } from "../../models/classes.model.js";
+import { verifyIfUserExists, verifyRole } from "../../models/users.model.js"
 
 const createNewClass = async (req, res, next) => {
     if (!req.body || !req.body.name || !req.body.grade) {
@@ -43,12 +44,35 @@ const getClasses = async (req, res, next) => {
     return res.json(classes.map(course => {
         return {
             name: course.name,
-            grade: course.grade
+            grade: course.grade,
+            id: course.id
         }
     }))
 }
 
+const getClass = async (req, res, next) => {
+    const user = await verifyIfUserExists(req.user.uid);
+    if (!user) return res.status(404).json({
+        error: 'Not found: User not found'
+    });
+
+    if (!req.query || !req.query.id) return res.status(400).json({
+        error: 'Bad request: Invalid query parameters'
+    })
+
+    const classTeachers = await getClassTeachers(req.query.id);
+    if (classTeachers.rows.find((elem) => elem.id == user.id) == undefined) {
+        return res.status(403).json({
+            error: 'Forbidden: The user cannot access the requested class'
+        })
+    };
+
+    const classData = await getClassFromId(req.query.id);
+    res.json(classData[0])
+}
+
 export {
     createNewClass,
-    getClasses
+    getClasses,
+    getClass
 }

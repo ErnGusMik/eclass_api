@@ -9,6 +9,7 @@ import teacherRouter from './routes/teacher/teacher.routes.js';
 import serviceAccount from './firebaseServiceAccountKey.json' with { type: 'json' };
 
 import admin from 'firebase-admin';
+import scheduleRouter from './routes/teacher/schedules.routes.js';
 
 configDotenv();
 
@@ -35,6 +36,7 @@ app.use('/teacher/', teacherRouter)
 app.use('/teacher/lesson/', teacherLessonRouter)
 app.use('/teacher/class/', teacherClassRouter)
 app.use('/notices', noticesRouter)
+app.use('/schedules/', scheduleRouter)
 
 
 app.listen(PORT, async () => {

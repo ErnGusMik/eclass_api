@@ -16,6 +16,12 @@ const createNewClass = async (req, res, next) => {
         })
     }
 
+    if (user.role != 'teacher') {
+        return res.status(403).json({
+            error: 'Forbidden: Users with the role ' + user.role + ' may not access this endpoint.'
+        })
+    }
+
     const classStatus = await createClass(req.body.name, req.body.grade, user.id);
 
     switch (classStatus) {

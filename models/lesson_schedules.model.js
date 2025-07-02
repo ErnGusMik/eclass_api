@@ -1,3 +1,4 @@
+import { parse } from "dotenv";
 import pool from "../config/db.js";
 
 const createSchedule = async (
@@ -33,22 +34,25 @@ const getSchedule = async (scheduleId) => {
 const generateLessons = async (scheduleId) => {
     const schedule = await getSchedule(scheduleId);
 
-    const currentTime = new Date(schedule.time);
     let currentDate = getNextWeekday(schedule.weekday);
-    currentDate.setHours(currentTime.getHours(), currentTime.getMinutes());
+    const time = JSON.parse(schedule.time);
+    currentDate.setHours(parseInt(time[0]), parseInt(time[1]));
     let finalDate;
 
-    if (Date.now() > Date(Date.now().getFullYear(), 6, 30)) {
-        finalDate = Date(Date.now().getFullYear() + 1, 6, 30);
+    if (
+        new Date().getTime() >
+        new Date(new Date().getFullYear(), 5, 30).getTime()
+    ) {
+        finalDate = new Date(new Date().getFullYear() + 1, 5, 30);
     } else {
-        finalDate = Date(Date.now().getFullYear(), 6, 30);
+        finalDate = new Date(new Date().getFullYear(), 5, 30);
     }
 
+    const client = await pool.connect();
     try {
-        const client = await pool.connect();
         await client.query("BEGIN");
 
-        while (currentDate < finalDate) {
+        while (currentDate.getTime() < finalDate.getTime()) {
             client.query(
                 "INSERT INTO lessons (class_id, room, created_at, schedule_id, datetime, duration) VALUES ($1, $2, NOW(), $3, $4, $5) ON CONFLICT DO NOTHING",
                 [
@@ -59,9 +63,9 @@ const generateLessons = async (scheduleId) => {
                     schedule.duration,
                 ]
             );
-            currentDate = Date(currentDate.getTime() + 1000 * 60 * 60 * 24 * 7); // adds a week
+            currentDate.setDate(currentDate.getDate() + 7);
         }
-        client.query("COMMIT");
+        await client.query("COMMIT");
     } catch (e) {
         await client.query("ROLLBACK");
         console.log(e);
@@ -75,13 +79,12 @@ const generateLessons = async (scheduleId) => {
 
 export { createSchedule, generateLessons, getSchedule };
 
-
 // helpers
 const getNextWeekday = (weekday) => {
     const today = new Date();
-    const todayWeekday = today.getDate();
+    const todayWeekday = today.getDay();
     const diff = (weekday + 7 - todayWeekday) % 7 || 7;
-    const nextWeekday = new Date(today);
+    const nextWeekday = new Date();
     nextWeekday.setDate(today.getDate() + diff);
     return nextWeekday;
-}
+};

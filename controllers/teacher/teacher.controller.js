@@ -59,7 +59,6 @@ const createNotice = async (req, res, next) => {
 };
 
 const getRelevantNotices = async (req, res, next) => {
- // TODO: you left here... do this now!
     const user = await verifyIfUserExists(req.user.uid);
     const notices = await getNoticesForTeacher(user.id);
 

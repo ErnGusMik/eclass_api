@@ -1,8 +1,8 @@
 // everything to do with schedules -- creation, lesson generation, getting, etc.
 
 import e from 'express';
-import verifyFirebaseToken from '../../middleware/auth.middleware.js';
-import { createNewSchedule } from '../../controllers/teacher/schedules.controllers.js';
+import verifyFirebaseToken from '../middleware/auth.middleware.js';
+import { createNewSchedule } from '../controllers/schedules.controllers.js';
 
 const scheduleRouter = e.Router();
 

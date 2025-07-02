@@ -1,4 +1,5 @@
-import { createSchedule, generateLessons } from "../../models/lesson_schedules.model.js";
+import { createSchedule, generateLessons } from "../models/lesson_schedules.model.js";
+import { verifyIfUserExists } from "../models/users.model.js";
 
 const createNewSchedule = async (req, res, next) => {
     if (
@@ -15,6 +16,12 @@ const createNewSchedule = async (req, res, next) => {
             error: "Bad request: Missing request body parameters.",
         });
     }
+
+    const user = await verifyIfUserExists(req.user.uid);
+    if (user.role != 'teacher') return res.status(403).json({
+        error: "Forbidden: Users with the role" + user.role + ' may not access this endpoint'
+    })
+
     const schedule = await createSchedule(
         req.body.classId,
         req.body.weekday,

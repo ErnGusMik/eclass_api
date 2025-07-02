@@ -6,10 +6,11 @@ import teacherLessonRouter from './routes/teacher/lessons.routes.js';
 import teacherClassRouter from './routes/teacher/classes.routes.js';
 import noticesRouter from './routes/notices.routes.js';
 import teacherRouter from './routes/teacher/teacher.routes.js';
+import scheduleRouter from './routes/schedules.routes.js';
 import serviceAccount from './firebaseServiceAccountKey.json' with { type: 'json' };
 
+
 import admin from 'firebase-admin';
-import scheduleRouter from './routes/teacher/schedules.routes.js';
 
 configDotenv();
 

@@ -39,6 +39,8 @@ const generateLessons = async (scheduleId) => {
     currentDate.setHours(parseInt(time[0]), parseInt(time[1]));
     let finalDate;
 
+    const exceptions = JSON.parse(schedule.exceptions);
+
     if (
         new Date().getTime() >
         new Date(new Date().getFullYear(), 5, 30).getTime()
@@ -53,16 +55,29 @@ const generateLessons = async (scheduleId) => {
         await client.query("BEGIN");
 
         while (currentDate.getTime() < finalDate.getTime()) {
-            client.query(
-                "INSERT INTO lessons (class_id, room, created_at, schedule_id, datetime, duration) VALUES ($1, $2, NOW(), $3, $4, $5) ON CONFLICT DO NOTHING",
-                [
-                    schedule.class_id,
-                    schedule.room,
-                    schedule.id,
-                    currentDate,
-                    schedule.duration,
-                ]
-            );
+            let doNotAdd = false;
+            for (const exception of exceptions) {
+                const start = new Date(exception[0]);
+                start.setHours(0, 0);
+                const end = new Date(exception[1]);
+                end.setHours(23, 59);
+                if (start.getTime() < currentDate.getTime() && currentDate.getTime() < end.getTime()) {
+                    doNotAdd = true;
+                    break;
+                }
+            }
+            if (!doNotAdd) {
+                client.query(
+                    "INSERT INTO lessons (class_id, room, created_at, schedule_id, datetime, duration) VALUES ($1, $2, NOW(), $3, $4, $5) ON CONFLICT DO NOTHING",
+                    [
+                        schedule.class_id,
+                        schedule.room,
+                        schedule.id,
+                        currentDate,
+                        schedule.duration,
+                    ]
+                );
+            }
             currentDate.setDate(currentDate.getDate() + 7);
         }
         await client.query("COMMIT");
@@ -77,7 +92,12 @@ const generateLessons = async (scheduleId) => {
     }
 };
 
-export { createSchedule, generateLessons, getSchedule };
+const getSchedulesForClass = async classId => {
+    const schedules = await pool.query('SELECT * FROM lesson_schedules WHERE class_id = $1', [classId]);
+    return schedules.rows
+}
+
+export { createSchedule, generateLessons, getSchedule, getSchedulesForClass };
 
 // helpers
 const getNextWeekday = (weekday) => {

@@ -1,4 +1,4 @@
-import { createSchedule, generateLessons } from "../models/lesson_schedules.model.js";
+import { createSchedule, generateLessons, getSchedulesForClass } from "../models/lesson_schedules.model.js";
 import { verifyIfUserExists } from "../models/users.model.js";
 
 const createNewSchedule = async (req, res, next) => {
@@ -49,4 +49,18 @@ const createNewSchedule = async (req, res, next) => {
     res.sendStatus(201);
 };
 
-export { createNewSchedule };
+const getAllSchedules = async (req, res, next) => {
+    if (!req.query || !req.query.id) {
+        return res.status(400).json({
+            error: 'Bad request: Missing query parameters'
+        })
+    }
+
+    const schedules = await getSchedulesForClass(req.query.id);
+
+    return res.json({
+        schedules: schedules
+    })
+}
+
+export { createNewSchedule, getAllSchedules };

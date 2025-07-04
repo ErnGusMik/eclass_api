@@ -22,6 +22,12 @@ const getClassTeachers = async (classID) => {
     return teachers;
 };
 
+const verifyClassTeacher = async (classID, teacherID) => {
+    const query = await pool.query('SELECT * FROM class_teachers WHERE class_id = $1 AND teacher_id = $2', [classID, teacherID]);
+    if (query.rowCount == 0) {
+        return false
+    };
+    return true;
+}
 
-
-export { addTeacherToClass, getClassTeachers };
+export { addTeacherToClass, getClassTeachers, verifyClassTeacher };

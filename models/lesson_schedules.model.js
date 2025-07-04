@@ -73,7 +73,7 @@ const generateLessons = async (scheduleId) => {
                         schedule.class_id,
                         schedule.room,
                         schedule.id,
-                        currentDate,
+                        new Date(currentDate),
                         schedule.duration,
                     ]
                 );

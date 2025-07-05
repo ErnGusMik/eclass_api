@@ -15,6 +15,40 @@ const getLessonsInDay = async (date, classId) => {
 };
 
 
+const getLessonClass = async (lessonId) => {
+    const classId = await pool.query('SELECT class_id FROM lessons WHERE id = $1', [lessonId]);
+    if (classId.rowCount != 1) {
+        return false;
+    }
+    return classId.rows[0].class_id;
+}
+
+
+const updateNotes = async (lessonId, content) => {
+    const query = await pool.query('UPDATE lessons SET notes = $1 WHERE id = $2 RETURNING id', [content, lessonId]);
+    if (query.rowCount == 1) {
+        return true
+    }
+    return false;
+}
+
+const updateTopic = async (lessonId, content) => {
+    const query = await pool.query('UPDATE lessons SET topic = $1 WHERE id = $2 RETURNING id', [content, lessonId]);
+    if (query.rowCount == 1) {
+        return true
+    }
+    return false;
+}
+
+const getAllLessons = async (classId) => {
+    const query = await pool.query('SELECT id, datetime FROM lessons WHERE class_id = $1', [classId]);
+    return query.rows;
+}
+
 export {
-    getLessonsInDay
+    getLessonsInDay,
+    getLessonClass,
+    updateNotes,
+    updateTopic,
+    getAllLessons
 }

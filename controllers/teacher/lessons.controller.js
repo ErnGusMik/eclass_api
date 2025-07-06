@@ -119,7 +119,7 @@ const updateLesson = async (req, res, next) => {
             if (!req.body.hw_assigned_id) return res.status(400).json({
                 error: 'Bad request: For new instances of HW due, a hw_assigned_id is required in the request body'
             })
-            const createdHW = await createHomework(req.body.lessonId, req.body.hw_assigned_id, req.body.content);
+            const createdHW = await createHomework(req.body.lessonId, parseInt(req.body.hw_assigned_id), req.body.content);
             if (!createdHW) {
                 return res.status(500).json({
                     error: 'Internal server error: Homework creation failed'
@@ -143,7 +143,7 @@ const updateLesson = async (req, res, next) => {
             if (!req.body.hw_due_id) return res.status(400).json({
                 error: 'Bad request: For new instances of HW assigned, a hw_due_id is required in the request body'
             })
-            const createdHW = await createHomework(req.body.lessonId, req.body.hw_due_id, req.body.content);
+            const createdHW = await createHomework(req.body.hw_due_id, req.body.lessonId, req.body.content);
             if (!createdHW) {
                 return res.status(500).json({
                     error: 'Internal server error: Homework creation failed'

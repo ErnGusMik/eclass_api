@@ -77,6 +77,8 @@ const getClass = async (req, res, next) => {
     res.json(classData[0])
 }
 
+
+
 export {
     createNewClass,
     getClasses,

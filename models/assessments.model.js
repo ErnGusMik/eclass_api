@@ -26,21 +26,25 @@ const checkIfAssessmentExists = async (lessonId) => {
 const getUpcomingAssessments = async (classId) => {
     const query = await pool.query(
         `SELECT
-        a.id AS assessment_id
-        a.topic,
-        a.sys,
-        a.lesson_id
-        l.datetime
-        l.duration
-        l.class_id
-        l.id AS lesson_id
-    FROM assessments a
-    JOIN lessons l ON a.lesson_id = l.id
-    WHERE l.datetime::timestamp > NOW() AND l.class_id = $1
-    ORDER BY l.datetime::timestamp ASC;`,
+        assessments.id AS assessment_id,
+        assessments.topic,
+        assessments.sys,
+        assessments.lesson_id,
+        lessons.datetime,
+        lessons.duration,
+        lessons.class_id,
+        lessons.id AS lesson_id
+    FROM assessments
+    JOIN lessons ON assessments.lesson_id = lessons.id
+    WHERE lessons.datetime::timestamp > NOW() AND lessons.class_id = $1
+    ORDER BY lessons.datetime::timestamp ASC;`,
     [classId]
     );
     return query.rows;
 };
+
+const getAssessment = async (lessonId) => {
+    const assessment = await pool.query('SELECT * FROM assessments WHERE ')
+}
 
 export { createAssessment, checkIfAssessmentExists, getUpcomingAssessments };

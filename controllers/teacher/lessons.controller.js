@@ -12,7 +12,11 @@ import {
     updateTopic,
 } from "../../models/lessons.model.js";
 import { verifyIfUserExists } from "../../models/users.model.js";
-import { checkIfAssessmentExists, createAssessment, getUpcomingAssessments } from "../../models/assessments.model.js";
+import {
+    checkIfAssessmentExists,
+    createAssessment,
+    getUpcomingAssessments,
+} from "../../models/assessments.model.js";
 
 const getDayLessons = async (req, res, next) => {
     if (!req.query || !req.query.date || !req.query.classId) {
@@ -253,8 +257,8 @@ const createNewAssessment = async (req, res, next) => {
 
     if (assessmentExists) {
         return res.status(409).json({
-            error: 'Conflict: An assessment already exists for this lesson'
-        })
+            error: "Conflict: An assessment already exists for this lesson",
+        });
     }
 
     const assessmentId = await createAssessment(
@@ -265,15 +269,50 @@ const createNewAssessment = async (req, res, next) => {
 
     if (!assessmentId) {
         return res.status(500).json({
-            error: 'Internal server error: Assessment creation failed'
-        })
+            error: "Internal server error: Assessment creation failed",
+        });
     }
 
     res.status(201).json({
-        assessmentId: assessmentId
+        assessmentId: assessmentId,
+    });
+};
+
+
+const getAllUpcomingAssessments = async (req, res, next) => {
+    if (!req.query || !req.query.classId) {
+        return res.status(400).json({
+            error: "Bad request: Missing query parameters",
+        });
+    }
+
+    const user = await verifyIfUserExists(req.user.uid);
+    if (!user) {
+        return res.status(404).json({
+            error: "Not found: User not found",
+        });
+    }
+
+    const verifiedTeacher = await verifyClassTeacher(req.query.classId, user.id);
+
+    if (!verifiedTeacher) {
+        return res.status(403).json({
+            error: "Forbidden: The user may not access this resource",
+        });
+    }
+
+    const upcomingAssessments = await getUpcomingAssessments(req.query.classId);
+    res.json({
+        assessments: upcomingAssessments
     })
 };
 
-// TODO: you left here. use getUpcomingAssessments and create and endpoint for that now.
 
-export { getDayLessons, updateLesson, getAllTimes, createNewAssessment };
+
+export {
+    getDayLessons,
+    updateLesson,
+    getAllTimes,
+    createNewAssessment,
+    getAllUpcomingAssessments,
+};

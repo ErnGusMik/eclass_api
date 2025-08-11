@@ -1,6 +1,7 @@
 import { getClassTeachers } from "../../models/class_teachers.model.js";
 import { createClass, getAllClasses, getClassData, getClassFromId } from "../../models/classes.model.js";
 import { verifyIfUserExists, verifyRole } from "../../models/users.model.js"
+import { getLessonCount } from '../../models/lessons.model.js'
 
 const createNewClass = async (req, res, next) => {
     if (!req.body || !req.body.name || !req.body.grade) {
@@ -77,10 +78,20 @@ const getClass = async (req, res, next) => {
     res.json(classData[0])
 }
 
+// TODO: DO THIS LATER, NOT A PRIORITY RN
+const getClassStats = async (req, res, next) => {
+    if (!req.query || !req.query.classId) {
+        return res.status(400).json({
+            error: 'Bad request: Missing query parameters'
+        })
+    }
 
+    const lessonCount = getLessonCount(req.query.classId);
+}
 
 export {
     createNewClass,
     getClasses,
-    getClass
+    getClass,
+    getClassStats
 }

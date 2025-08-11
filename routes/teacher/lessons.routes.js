@@ -2,7 +2,7 @@
 
 import e from "express";
 import verifyFirebaseToken from './../../middleware/auth.middleware.js'
-import { createNewAssessment, getAllTimes, getAllUpcomingAssessments, getDayLessons, updateLesson } from "../../controllers/teacher/lessons.controller.js";
+import { createNewAssessment, deleteLessonAssessment, getAllTimes, getAllUpcomingAssessments, getDayLessons, updateLesson } from "../../controllers/teacher/lessons.controller.js";
 
 const teacherLessonRouter = e.Router();
 
@@ -12,5 +12,6 @@ teacherLessonRouter.put('/update', verifyFirebaseToken, updateLesson)
 teacherLessonRouter.get('/get/all', verifyFirebaseToken, getAllTimes)
 teacherLessonRouter.post('/assessment/create', verifyFirebaseToken, createNewAssessment)
 teacherLessonRouter.get('/assessment/getUpcoming', verifyFirebaseToken, getAllUpcomingAssessments)
+teacherLessonRouter.delete('/assessment/delete', verifyFirebaseToken, deleteLessonAssessment)
 
 export default teacherLessonRouter;

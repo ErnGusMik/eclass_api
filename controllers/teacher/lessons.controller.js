@@ -15,7 +15,10 @@ import { verifyIfUserExists } from "../../models/users.model.js";
 import {
     checkIfAssessmentExists,
     createAssessment,
+    deleteAssessment,
+    getAssessment,
     getUpcomingAssessments,
+    updateAssessmentTopic,
 } from "../../models/assessments.model.js";
 
 const getDayLessons = async (req, res, next) => {
@@ -49,6 +52,7 @@ const getDayLessons = async (req, res, next) => {
     for (const lesson of lessons) {
         const homeworkDue = await getHomework("due", lesson.id);
         const homeworkAssigned = await getHomework("assigned", lesson.id);
+        const assessment = await getAssessment(lesson.id);
         readyToSend.push({
             id: lesson.id,
             class_id: lesson.class_id,
@@ -61,6 +65,7 @@ const getDayLessons = async (req, res, next) => {
             duration: lesson.duration,
             hw_due: homeworkDue,
             hw_assigned: homeworkAssigned,
+            assessment: assessment,
         });
     }
 
@@ -185,6 +190,16 @@ const updateLesson = async (req, res, next) => {
             }
         }
     } else if (req.query.field == "assessment") {
+        const updatedAssessment = await updateAssessmentTopic(
+            req.body.lessonId,
+            req.body.content
+        );
+        if (!updatedAssessment) {
+            return res.status(500).json({
+                error: "Internal server error: Assesment editing failed. This could be because of invalid parameters.",
+            });
+        }
+        return res.sendStatus(204);
     } else {
         return res.status(400).json({
             error: "Bad request: Invalid query parameter",
@@ -278,7 +293,6 @@ const createNewAssessment = async (req, res, next) => {
     });
 };
 
-
 const getAllUpcomingAssessments = async (req, res, next) => {
     if (!req.query || !req.query.classId) {
         return res.status(400).json({
@@ -293,7 +307,10 @@ const getAllUpcomingAssessments = async (req, res, next) => {
         });
     }
 
-    const verifiedTeacher = await verifyClassTeacher(req.query.classId, user.id);
+    const verifiedTeacher = await verifyClassTeacher(
+        req.query.classId,
+        user.id
+    );
 
     if (!verifiedTeacher) {
         return res.status(403).json({
@@ -303,11 +320,44 @@ const getAllUpcomingAssessments = async (req, res, next) => {
 
     const upcomingAssessments = await getUpcomingAssessments(req.query.classId);
     res.json({
-        assessments: upcomingAssessments
-    })
+        assessments: upcomingAssessments,
+    });
 };
 
+const deleteLessonAssessment = async (req, res, next) => {
+    if (!req.query || !req.query.lessonId) {
+        res.status(400).json({
+            error: "Bad request: Missing query parameters",
+        });
+    }
 
+    const user = await verifyIfUserExists(req.user.uid);
+    if (!user) {
+        return res.status(404).json({
+            error: "Not found: User not found",
+        });
+    }
+
+    const classId = await getLessonClass(req.query.lessonId);
+
+    if (!classId) {
+        return res.status(404).json({
+            error: "Not found: Class not found",
+        });
+    }
+
+    const verifiedTeacher = await verifyClassTeacher(classId, user.id);
+
+    if (!verifiedTeacher) {
+        return res.status(403).json({
+            error: "Forbidden: The user may not access this resource",
+        });
+    }
+
+    await deleteAssessment(req.query.lessonId);
+
+    res.sendStatus(204);
+};
 
 export {
     getDayLessons,
@@ -315,4 +365,5 @@ export {
     getAllTimes,
     createNewAssessment,
     getAllUpcomingAssessments,
+    deleteLessonAssessment,
 };

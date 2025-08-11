@@ -45,10 +45,17 @@ const getAllLessons = async (classId) => {
     return query.rows;
 }
 
+const getLessonCount = async (classId) => {
+    const lessonCount = await pool.query('SELECT COUNT(*) FROM lessons WHERE class_id = $1', [classId]);
+    return lessonCount.rows[0];
+}
+
+
 export {
     getLessonsInDay,
     getLessonClass,
     updateNotes,
     updateTopic,
-    getAllLessons
+    getAllLessons,
+    getLessonCount
 }

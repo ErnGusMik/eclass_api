@@ -38,13 +38,41 @@ const getUpcomingAssessments = async (classId) => {
     JOIN lessons ON assessments.lesson_id = lessons.id
     WHERE lessons.datetime::timestamp > NOW() AND lessons.class_id = $1
     ORDER BY lessons.datetime::timestamp ASC;`,
-    [classId]
+        [classId]
     );
     return query.rows;
 };
 
 const getAssessment = async (lessonId) => {
-    const assessment = await pool.query('SELECT * FROM assessments WHERE ')
+    const assessment = await pool.query(
+        "SELECT * FROM assessments WHERE lesson_id = $1",
+        [lessonId]
+    );
+    if (assessment.rowCount == 1) {
+        return assessment.rows[0];
+    }
+    return false;
+};
+
+const updateAssessmentTopic = async (lessonId, content) => {
+    const query = await pool.query(
+        "UPDATE assessments SET topic = $1 WHERE lesson_id = $2 RETURNING id",
+        [content, lessonId]
+    );
+    if (query.rowCount == 1) return true;
+    return false;
+};
+
+const deleteAssessment = async (lessonId) => {
+    await pool.query("DELETE FROM assessments WHERE lesson_id = $1", [lessonId]);
+    return;
 }
 
-export { createAssessment, checkIfAssessmentExists, getUpcomingAssessments };
+export {
+    createAssessment,
+    checkIfAssessmentExists,
+    getUpcomingAssessments,
+    getAssessment,
+    updateAssessmentTopic,
+    deleteAssessment
+};

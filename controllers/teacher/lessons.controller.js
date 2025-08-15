@@ -14,8 +14,10 @@ import {
 import { verifyIfUserExists } from "../../models/users.model.js";
 import {
     checkIfAssessmentExists,
+    checkIfAssessmentExistsByID,
     createAssessment,
     deleteAssessment,
+    editAssessment,
     getAssessment,
     getUpcomingAssessments,
     updateAssessmentTopic,
@@ -359,6 +361,69 @@ const deleteLessonAssessment = async (req, res, next) => {
     res.sendStatus(204);
 };
 
+const updateLessonAssessment = async (req, res, next) => {
+    if (!req.body || !req.body.lessonId || !req.body.assessmentId) {
+        return res.status(400).json({
+            error: "Bad request: Missing request body",
+        });
+    }
+
+    if (req.body.sys != "graded" && req.body.sys != "practice" && req.body.sys != null) {
+        res.status(400).json({
+            error: "Bad request: Invalid grading system",
+        });
+    }
+
+    const classId = await getLessonClass(parseInt(req.body.lessonId));
+
+    if (!classId) {
+        return res.status(404).json({
+            error: "Not found: The lesson with the specified class ID could not be found",
+        });
+    }
+
+    const user = await verifyIfUserExists(req.user.uid);
+
+    if (!user) {
+        return res.status(404).json({
+            error: "Not found: User not found",
+        });
+    }
+
+    const verifiedTeacher = await verifyClassTeacher(classId, user.id);
+
+    if (!verifiedTeacher) {
+        return res.status(403).json({
+            error: "Forbidden: The user may not access this resource",
+        });
+    }
+
+    const assessmentExists = await checkIfAssessmentExistsByID(req.body.assessmentId);
+
+    if (!assessmentExists) {
+        return res.status(404).json({
+            error: "Not found: This assessment was not found",
+        });
+    }
+
+    const assessmentId = await editAssessment(
+        req.body.id,
+        req.body.lessonId ? parseInt(req.body.lessonId) : null,
+        req.body.topic,
+        req.body.sys
+    );
+
+    if (!assessmentId) {
+        return res.status(500).json({
+            error: "Internal server error: Assessment creation failed",
+        });
+    }
+
+    res.status(200).json({
+        assessmentId: assessmentId,
+    });
+}
+
 export {
     getDayLessons,
     updateLesson,
@@ -366,4 +431,5 @@ export {
     createNewAssessment,
     getAllUpcomingAssessments,
     deleteLessonAssessment,
+    updateLessonAssessment
 };

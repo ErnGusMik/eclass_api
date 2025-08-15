@@ -23,6 +23,16 @@ const checkIfAssessmentExists = async (lessonId) => {
     return false;
 };
 
+const checkIfAssessmentExistsByID = async (id) => {
+    const query = await pool.query("SELECT * FROM assessments WHERE id = $1", [
+        id,
+    ]);
+    if (response.rowCount > 0) {
+        return query.rows;
+    }
+    return false;
+};
+
 const getUpcomingAssessments = async (classId) => {
     const query = await pool.query(
         `SELECT
@@ -64,15 +74,33 @@ const updateAssessmentTopic = async (lessonId, content) => {
 };
 
 const deleteAssessment = async (lessonId) => {
-    await pool.query("DELETE FROM assessments WHERE lesson_id = $1", [lessonId]);
+    await pool.query("DELETE FROM assessments WHERE lesson_id = $1", [
+        lessonId,
+    ]);
     return;
-}
+};
+
+const editAssessment = async (id, lessonId, topic, sys) => {
+    const query = await pool.query(
+        `UPDATE assessments SET ${lessonId != null ? "lesson_id = $1" : ""} ${
+            topic != null ? "topic = $2" : ""
+        } ${sys != null ? "sys = $3" : ""} WHERE id = $4 RETURNING id`,
+        [lessonId, topic, sys, id]
+    );
+    if (query.rowCount == 1) {
+        return query.rows[0].id;
+    } else return false;
+};
+
+// TODO: you left here. add an edit assessment function.
 
 export {
     createAssessment,
     checkIfAssessmentExists,
+    checkIfAssessmentExistsByID,
     getUpcomingAssessments,
     getAssessment,
     updateAssessmentTopic,
-    deleteAssessment
+    deleteAssessment,
+    editAssessment
 };

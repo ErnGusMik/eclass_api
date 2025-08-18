@@ -13,6 +13,6 @@ teacherLessonRouter.get('/get/all', verifyFirebaseToken, getAllTimes)
 teacherLessonRouter.post('/assessment/create', verifyFirebaseToken, createNewAssessment)
 teacherLessonRouter.get('/assessment/getUpcoming', verifyFirebaseToken, getAllUpcomingAssessments)
 teacherLessonRouter.delete('/assessment/delete', verifyFirebaseToken, deleteLessonAssessment)
-teacherLessonRouter.put('assessment/update', verifyFirebaseToken, updateLessonAssessment)
+teacherLessonRouter.put('/assessment/update', verifyFirebaseToken, updateLessonAssessment)
 
 export default teacherLessonRouter;

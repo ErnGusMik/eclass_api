@@ -400,14 +400,22 @@ const updateLessonAssessment = async (req, res, next) => {
 
     const assessmentExists = await checkIfAssessmentExistsByID(req.body.assessmentId);
 
-    if (!assessmentExists) {
+    if (assessmentExists == [] || assessmentExists == false) {
         return res.status(404).json({
             error: "Not found: This assessment was not found",
         });
     }
 
+    const differentAssessmentExists = await checkIfAssessmentExists(req.body.lessonId);
+
+    if (differentAssessmentExists && differentAssessmentExists[0].id != req.body.assessmentId) {
+        return res.status(409).json({
+            error: "Conflict: A different assessment exists for this lesson",
+        });
+    }
+
     const assessmentId = await editAssessment(
-        req.body.id,
+        req.body.assessmentId,
         req.body.lessonId ? parseInt(req.body.lessonId) : null,
         req.body.topic,
         req.body.sys

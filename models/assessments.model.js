@@ -27,7 +27,7 @@ const checkIfAssessmentExistsByID = async (id) => {
     const query = await pool.query("SELECT * FROM assessments WHERE id = $1", [
         id,
     ]);
-    if (response.rowCount > 0) {
+    if (query.rowCount > 0) {
         return query.rows;
     }
     return false;
@@ -81,18 +81,32 @@ const deleteAssessment = async (lessonId) => {
 };
 
 const editAssessment = async (id, lessonId, topic, sys) => {
-    const query = await pool.query(
-        `UPDATE assessments SET ${lessonId != null ? "lesson_id = $1" : ""} ${
-            topic != null ? "topic = $2" : ""
-        } ${sys != null ? "sys = $3" : ""} WHERE id = $4 RETURNING id`,
-        [lessonId, topic, sys, id]
-    );
+    const fields = [];
+    const values = [];
+    let index = 1;
+
+    if (lessonId != null) {
+        fields.push(`lesson_id = $${index++}`);
+        values.push(lessonId);
+    }
+    if (topic != null) {
+        fields.push(`topic = $${index++}`);
+        values.push(topic);
+    }
+    if (sys != null) {
+        fields.push(`sys = $${index++}`);
+        values.push(sys);
+    }
+
+    values.push(id);
+    const queryStr = `UPDATE assessments SET ${fields.join(", ")} WHERE id = $${index} RETURNING id`;
+    
+    const query = await pool.query(queryStr, values);
     if (query.rowCount == 1) {
         return query.rows[0].id;
     } else return false;
 };
 
-// TODO: you left here. add an edit assessment function.
 
 export {
     createAssessment,
@@ -102,5 +116,5 @@ export {
     getAssessment,
     updateAssessmentTopic,
     deleteAssessment,
-    editAssessment
+    editAssessment,
 };

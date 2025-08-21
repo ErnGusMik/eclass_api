@@ -80,14 +80,31 @@ const getClassData = async (classCode) => {
 };
 
 const getAllClasses = async (teacherID) => {
-    const classes = await pool.query('SELECT c.* FROM classes c JOIN class_teachers ct ON c.id = ct.class_id WHERE ct.teacher_id = $1', [teacherID]);
+    const classes = await pool.query(
+        "SELECT c.* FROM classes c JOIN class_teachers ct ON c.id = ct.class_id WHERE ct.teacher_id = $1",
+        [teacherID]
+    );
     return classes.rows;
-}
+};
 
 const getClassFromId = async (classID) => {
-    const classData = await pool.query('SELECT * FROM classes WHERE id = $1', [classID]);
+    const classData = await pool.query("SELECT * FROM classes WHERE id = $1", [
+        classID,
+    ]);
     if (classData.rowCount == 0) return false;
-    return classData.rows
-}
+    return classData.rows;
+};
 
-export { createClass, joinClass, getClassData, getAllClasses, getClassFromId };
+const deleteClassFromId = async (classID) => {
+    const query = await pool.query(
+        "DELETE FROM classes WHERE id = $1 RETURNING *",
+        [classID]
+    );
+    console.log(query.rows)
+    if (query.rowCount == 1) {
+        return true;
+    }
+    return false;
+};
+
+export { createClass, joinClass, getClassData, getAllClasses, getClassFromId, deleteClassFromId };

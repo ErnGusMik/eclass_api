@@ -1,5 +1,5 @@
 import { getClassTeachers } from "../../models/class_teachers.model.js";
-import { createClass, getAllClasses, getClassData, getClassFromId } from "../../models/classes.model.js";
+import { createClass, deleteClassFromId, getAllClasses, getClassData, getClassFromId } from "../../models/classes.model.js";
 import { verifyIfUserExists, verifyRole } from "../../models/users.model.js"
 import { getLessonCount } from '../../models/lessons.model.js'
 
@@ -89,9 +89,38 @@ const getClassStats = async (req, res, next) => {
     const lessonCount = getLessonCount(req.query.classId);
 }
 
+const deleteClass = async (req, res, next) => {
+    const user = await verifyIfUserExists(req.user.uid);
+    if (!user) return res.status(404).json({
+        error: 'Not found: User not found'
+    });
+
+    if (!req.query || !req.query.id) return res.status(400).json({
+        error: 'Bad request: Invalid query parameters'
+    })
+
+    const classTeachers = await getClassTeachers(req.query.id);
+    if (classTeachers.rows.find((elem) => elem.id == user.id) == undefined) {
+        return res.status(403).json({
+            error: 'Forbidden: The user cannot access the requested class'
+        })
+    };
+
+    const deleted = await deleteClassFromId(req.query.id);
+
+    if (deleted) {
+        return res.sendStatus(204);
+    }
+
+    return res.status(500).json({
+        error: 'Internal server error: Class deletion failed'
+    })
+}
+
 export {
     createNewClass,
     getClasses,
     getClass,
-    getClassStats
+    getClassStats,
+    deleteClass
 }

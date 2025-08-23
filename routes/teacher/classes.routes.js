@@ -7,6 +7,7 @@ import {
     deleteClass,
     getClass,
     getClasses,
+    getClassStudents,
 } from "../../controllers/teacher/classes.controller.js";
 
 const teacherClassRouter = e.Router();
@@ -16,5 +17,6 @@ teacherClassRouter.post("/new", verifyFirebaseToken, createNewClass);
 teacherClassRouter.get("/get/all", verifyFirebaseToken, getClasses);
 teacherClassRouter.get("/get", verifyFirebaseToken, getClass);
 teacherClassRouter.delete("/delete", verifyFirebaseToken, deleteClass);
+teacherClassRouter.get("/students", verifyFirebaseToken, getClassStudents);
 
 export default teacherClassRouter;

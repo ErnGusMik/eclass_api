@@ -2,6 +2,7 @@ import { getClassTeachers } from "../../models/class_teachers.model.js";
 import { createClass, deleteClassFromId, getAllClasses, getClassData, getClassFromId } from "../../models/classes.model.js";
 import { verifyIfUserExists, verifyRole } from "../../models/users.model.js"
 import { getLessonCount } from '../../models/lessons.model.js'
+import { getStudentsInClass } from '../../models/class_students.model.js'
 
 const createNewClass = async (req, res, next) => {
     if (!req.body || !req.body.name || !req.body.grade) {
@@ -78,6 +79,29 @@ const getClass = async (req, res, next) => {
     res.json(classData[0])
 }
 
+const getClassStudents = async (req, res, next) => {
+    const user = await verifyIfUserExists(req.user.uid);
+    if (!user) return res.status(404).json({
+        error: 'Not found: User not found'
+    });
+
+    if (!req.query || !req.query.classId) return res.status(400).json({
+        error: 'Bad request: Invalid query parameters'
+    })
+
+    const classTeachers = await getClassTeachers(req.query.classId);
+    if (classTeachers.rows.find((elem) => elem.id == user.id) == undefined) {
+        return res.status(403).json({
+            error: 'Forbidden: The user cannot access the requested class'
+        })
+    };
+
+    const students = await getStudentsInClass(req.query.classId);
+    res.json({
+        students: students
+    });
+}
+
 // TODO: DO THIS LATER, NOT A PRIORITY RN
 const getClassStats = async (req, res, next) => {
     if (!req.query || !req.query.classId) {
@@ -122,5 +146,6 @@ export {
     getClasses,
     getClass,
     getClassStats,
-    deleteClass
+    deleteClass,
+    getClassStudents
 }

@@ -22,6 +22,7 @@ import {
     getUpcomingAssessments,
     updateAssessmentTopic,
 } from "../../models/assessments.model.js";
+import { getLessonAttendance, postAttendanceRecord } from "../../models/attendance.model.js";
 
 const getDayLessons = async (req, res, next) => {
     if (!req.query || !req.query.date || !req.query.classId) {
@@ -480,6 +481,91 @@ const updateAssessmentSystem = async (req, res, next) => {
     res.sendStatus(204);
 }
 
+const getAttendance = async (req, res, next) => {
+    if (!req.query || !req.query.lessonId) {
+        return res.status(400).json({
+            error: "Bad request: Missing query params",
+        });
+    }
+
+    const classId = await getLessonClass(parseInt(req.query.lessonId));
+
+    if (!classId) {
+        return res.status(404).json({
+            error: "Not found: The lesson with the specified class ID could not be found",
+        });
+    }
+
+    const user = await verifyIfUserExists(req.user.uid);
+
+    if (!user) {
+        return res.status(404).json({
+            error: "Not found: User not found",
+        });
+    }
+
+    const verifiedTeacher = await verifyClassTeacher(classId, user.id);
+
+    if (!verifiedTeacher) {
+        return res.status(403).json({
+            error: "Forbidden: The user may not access this resource",
+        });
+    }
+
+    const attendance = await getLessonAttendance(req.query.lessonId, classId);
+
+    if (!attendance) {
+        return res.status(500).json({
+            error: "Internal server error: Something went wrong searching for attendance records",
+        });
+    }
+
+    res.json({
+        students: attendance
+    });
+}
+
+const updateAttendance = async (req, res, next) => {
+    if (!req.body || !req.body.lessonId || !req.body.studentId || !req.body.status) {
+        return res.status(400).json({
+            error: "Bad request: Missing request body",
+        });
+    }
+
+    const classId = await getLessonClass(parseInt(req.body.lessonId));
+
+    if (!classId) {
+        return res.status(404).json({
+            error: "Not found: The lesson with the specified class ID could not be found",
+        });
+    }
+
+    const user = await verifyIfUserExists(req.user.uid);
+
+    if (!user) {
+        return res.status(404).json({
+            error: "Not found: User not found",
+        });
+    }
+
+    const verifiedTeacher = await verifyClassTeacher(classId, user.id);
+
+    if (!verifiedTeacher) {
+        return res.status(403).json({
+            error: "Forbidden: The user may not access this resource",
+        });
+    }
+
+    const record = await postAttendanceRecord(req.body.studentId, req.body.lessonId, req.body.status, classId);
+    if (!record) {
+        return res.status(500).json({
+            error: "Internal server error: Attendance update failed",
+        });
+    }
+
+    res.sendStatus(200);
+}
+
 export {
     getDayLessons,
     updateLesson,
@@ -489,4 +575,6 @@ export {
     deleteLessonAssessment,
     updateLessonAssessment,
     updateAssessmentSystem,
+    getAttendance,
+    updateAttendance
 };

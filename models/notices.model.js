@@ -52,4 +52,48 @@ const getTeacherNotice = async (teacherID, noticeID) => {
     return false;
 };
 
-export { postNotice, getNoticesForTeacher, getTeacherNotice };
+const getStudentNotice = async (studentID, noticeID) => {
+    const notice = await pool.query(
+        `WITH related_classes AS (
+            SELECT class_id
+            FROM class_students
+            WHERE student_id = $1
+        ),
+        related_teachers AS (
+            SELECT DISTINCT teacher_id
+            FROM class_teachers
+            WHERE class_id IN (SELECT class_id FROM related_classes)
+        )
+        SELECT *
+        FROM notices
+        WHERE id = $2
+        AND author_id IN (SELECT teacher_id FROM related_teachers);`,
+        [studentID, noticeID]
+    );
+    if (notice.rowCount == 1) {
+        return notice.rows[0];
+    }
+    return false;
+}
+
+const getNoticesForStudent = async (studentId) => {
+    const notices = await pool.query(
+        `WITH related_classes AS (
+            SELECT class_id
+            FROM class_students
+            WHERE student_id = $1
+        ),
+        related_teachers AS (
+            SELECT DISTINCT teacher_id
+            FROM class_teachers
+            WHERE class_id IN (SELECT class_id FROM related_classes)
+        )
+        SELECT *
+        FROM notices
+        WHERE author_id IN (SELECT teacher_id FROM related_teachers);`,
+        [studentId]
+    );
+    return notices.rows;
+}
+
+export { postNotice, getNoticesForTeacher, getTeacherNotice, getNoticesForStudent, getStudentNotice };

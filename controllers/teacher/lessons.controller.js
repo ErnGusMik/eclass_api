@@ -432,7 +432,53 @@ const updateLessonAssessment = async (req, res, next) => {
     });
 }
 
+const updateAssessmentSystem = async (req, res, next) => {
+    if (!req.body || !req.body.lessonId || !req.body.sys) {
+        return res.status(400).json({
+            error: "Bad request: Missing request body",
+        });
+    }
 
+    if (req.body.sys != "graded" && req.body.sys != "practice" && req.body.sys != null) {
+        res.status(400).json({
+            error: "Bad request: Invalid grading system",
+        });
+    }
+
+    const classId = await getLessonClass(parseInt(req.body.lessonId));
+
+    if (!classId) {
+        return res.status(404).json({
+            error: "Not found: The lesson with the specified class ID could not be found",
+        });
+    }
+
+    const user = await verifyIfUserExists(req.user.uid);
+
+    if (!user) {
+        return res.status(404).json({
+            error: "Not found: User not found",
+        });
+    }
+
+    const verifiedTeacher = await verifyClassTeacher(classId, user.id);
+
+    if (!verifiedTeacher) {
+        return res.status(403).json({
+            error: "Forbidden: The user may not access this resource",
+        });
+    }
+
+    const updated = await editAssessmentSystem(req.body.lessonId, req.body.sys);
+
+    if (!updated) {
+        return res.status(500).json({
+            error: "Internal server error: Assessment update failed",
+        });
+    }
+
+    res.sendStatus(204);
+}
 
 export {
     getDayLessons,
@@ -441,5 +487,6 @@ export {
     createNewAssessment,
     getAllUpcomingAssessments,
     deleteLessonAssessment,
-    updateLessonAssessment
+    updateLessonAssessment,
+    updateAssessmentSystem,
 };

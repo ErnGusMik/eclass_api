@@ -107,6 +107,14 @@ const editAssessment = async (id, lessonId, topic, sys) => {
     } else return false;
 };
 
+const editAssessmentSystem = async (lessonId, sys) => {
+    const query = await pool.query(
+        "UPDATE assessments SET sys = $1 WHERE lesson_id = $2 RETURNING id",
+        [sys, lessonId]
+    );
+    if (query.rowCount == 1) return true;
+    return false;
+};
 
 export {
     createAssessment,
@@ -117,4 +125,5 @@ export {
     updateAssessmentTopic,
     deleteAssessment,
     editAssessment,
+    editAssessmentSystem
 };

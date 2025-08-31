@@ -33,6 +33,17 @@ const checkIfAssessmentExistsByID = async (id) => {
     return false;
 };
 
+const doubleCheckIfAssessmentExists = async (id, lessonId) => {
+    const query = await pool.query("SELECT * FROM assessments WHERE id = $1 AND lesson_id = $2", [
+        id,
+        lessonId
+    ]);
+    if (query.rowCount > 0) {
+        return query.rows;
+    }
+    return false;
+};
+
 const getUpcomingAssessments = async (classId) => {
     const query = await pool.query(
         `SELECT
@@ -125,5 +136,6 @@ export {
     updateAssessmentTopic,
     deleteAssessment,
     editAssessment,
-    editAssessmentSystem
+    editAssessmentSystem,
+    doubleCheckIfAssessmentExists
 };

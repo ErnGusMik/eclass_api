@@ -34,6 +34,24 @@ const postAttendanceRecord = async (studentId, lessonId, status, classId) => {
     } else {
         return false;
     }
+
 };
 
-export { getLessonAttendance, postAttendanceRecord };
+const deleteAttendanceRecord = async (studentId, lessonId) => {
+    const query = await pool.query(
+        `
+        DELETE FROM attendance
+        WHERE student_id = $1 AND lesson_id = $2
+        RETURNING id;
+        `,
+        [studentId, lessonId]
+    );
+
+    if (query.rows.length > 0) {
+        return query.rows[0].id;
+    } else {
+        return false;
+    }
+};
+
+export { getLessonAttendance, postAttendanceRecord, deleteAttendanceRecord };

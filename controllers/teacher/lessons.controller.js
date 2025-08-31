@@ -18,11 +18,17 @@ import {
     createAssessment,
     deleteAssessment,
     editAssessment,
+    editAssessmentSystem,
     getAssessment,
     getUpcomingAssessments,
     updateAssessmentTopic,
 } from "../../models/assessments.model.js";
-import { getLessonAttendance, postAttendanceRecord } from "../../models/attendance.model.js";
+import {
+    deleteAttendanceRecord,
+    getLessonAttendance,
+    postAttendanceRecord,
+} from "../../models/attendance.model.js";
+import { getScores, updateScoreRecord } from "../../models/scores.model.js";
 
 const getDayLessons = async (req, res, next) => {
     if (!req.query || !req.query.date || !req.query.classId) {
@@ -369,7 +375,11 @@ const updateLessonAssessment = async (req, res, next) => {
         });
     }
 
-    if (req.body.sys != "graded" && req.body.sys != "practice" && req.body.sys != null) {
+    if (
+        req.body.sys != "graded" &&
+        req.body.sys != "practice" &&
+        req.body.sys != null
+    ) {
         res.status(400).json({
             error: "Bad request: Invalid grading system",
         });
@@ -399,7 +409,9 @@ const updateLessonAssessment = async (req, res, next) => {
         });
     }
 
-    const assessmentExists = await checkIfAssessmentExistsByID(req.body.assessmentId);
+    const assessmentExists = await checkIfAssessmentExistsByID(
+        req.body.assessmentId
+    );
 
     if (assessmentExists == [] || assessmentExists == false) {
         return res.status(404).json({
@@ -407,9 +419,14 @@ const updateLessonAssessment = async (req, res, next) => {
         });
     }
 
-    const differentAssessmentExists = await checkIfAssessmentExists(req.body.lessonId);
+    const differentAssessmentExists = await checkIfAssessmentExists(
+        req.body.lessonId
+    );
 
-    if (differentAssessmentExists && differentAssessmentExists[0].id != req.body.assessmentId) {
+    if (
+        differentAssessmentExists &&
+        differentAssessmentExists[0].id != req.body.assessmentId
+    ) {
         return res.status(409).json({
             error: "Conflict: A different assessment exists for this lesson",
         });
@@ -431,7 +448,7 @@ const updateLessonAssessment = async (req, res, next) => {
     res.status(200).json({
         assessmentId: assessmentId,
     });
-}
+};
 
 const updateAssessmentSystem = async (req, res, next) => {
     if (!req.body || !req.body.lessonId || !req.body.sys) {
@@ -440,7 +457,11 @@ const updateAssessmentSystem = async (req, res, next) => {
         });
     }
 
-    if (req.body.sys != "graded" && req.body.sys != "practice" && req.body.sys != null) {
+    if (
+        req.body.sys != "graded" &&
+        req.body.sys != "practice" &&
+        req.body.sys != null
+    ) {
         res.status(400).json({
             error: "Bad request: Invalid grading system",
         });
@@ -479,7 +500,7 @@ const updateAssessmentSystem = async (req, res, next) => {
     }
 
     res.sendStatus(204);
-}
+};
 
 const getAttendance = async (req, res, next) => {
     if (!req.query || !req.query.lessonId) {
@@ -521,12 +542,61 @@ const getAttendance = async (req, res, next) => {
     }
 
     res.json({
-        students: attendance
+        students: attendance,
     });
-}
+};
+
+const getAssessmentScores = async (req, res, next) => {
+    if (!req.query || !req.query.lessonId || !req.query.assessmentId) {
+        return res.status(400).json({
+            error: "Bad request: Missing query params",
+        });
+    }
+
+    const classId = await getLessonClass(parseInt(req.query.lessonId));
+
+    if (!classId) {
+        return res.status(404).json({
+            error: "Not found: The lesson with the specified class ID could not be found",
+        });
+    }
+
+    const user = await verifyIfUserExists(req.user.uid);
+
+    if (!user) {
+        return res.status(404).json({
+            error: "Not found: User not found",
+        });
+    }
+
+    const verifiedTeacher = await verifyClassTeacher(classId, user.id);
+
+    if (!verifiedTeacher) {
+        return res.status(403).json({
+            error: "Forbidden: The user may not access this resource",
+        });
+    }
+
+    const scores = await getScores(req.query.assessmentId, classId);
+
+    if (!scores) {
+        return res.status(500).json({
+            error: "Internal server error: Something went wrong searching for attendance records",
+        });
+    }
+
+    res.json({
+        students: scores,
+    });
+};
 
 const updateAttendance = async (req, res, next) => {
-    if (!req.body || !req.body.lessonId || !req.body.studentId || !req.body.status) {
+    if (
+        !req.body ||
+        !req.body.lessonId ||
+        !req.body.studentId ||
+        !req.body.status
+    ) {
         return res.status(400).json({
             error: "Bad request: Missing request body",
         });
@@ -556,15 +626,85 @@ const updateAttendance = async (req, res, next) => {
         });
     }
 
-    const record = await postAttendanceRecord(req.body.studentId, req.body.lessonId, req.body.status, classId);
-    if (!record) {
-        return res.status(500).json({
-            error: "Internal server error: Attendance update failed",
-        });
+    if (req.body.status == "-") {
+        await deleteAttendanceRecord(req.body.studentId, req.body.lessonId);
+    } else {
+        const record = await postAttendanceRecord(
+            req.body.studentId,
+            req.body.lessonId,
+            req.body.status,
+            classId
+        );
+        if (!record) {
+            return res.status(500).json({
+                error: "Internal server error: Attendance update failed",
+            });
+        }
     }
 
     res.sendStatus(200);
-}
+};
+
+const updateScore = async (req, res, next) => {
+    if (
+        !req.body ||
+        !req.body.lessonId ||
+        !req.body.studentId ||
+        !req.body.score
+    ) {
+        return res.status(400).json({
+            error: "Bad request: Missing request body",
+        });
+    }
+
+    const classId = await getLessonClass(parseInt(req.body.lessonId));
+
+    if (!classId) {
+        return res.status(404).json({
+            error: "Not found: The lesson with the specified class ID could not be found",
+        });
+    }
+
+    const user = await verifyIfUserExists(req.user.uid);
+
+    if (!user) {
+        return res.status(404).json({
+            error: "Not found: User not found",
+        });
+    }
+
+    const verifiedTeacher = await verifyClassTeacher(classId, user.id);
+
+    if (!verifiedTeacher) {
+        return res.status(403).json({
+            error: "Forbidden: The user may not access this resource",
+        });
+    }
+
+    const assessmentExists = await doubleCheckIfAssessmentExists(req.body.assessmentId, classId);
+    if (!assessmentExists) {
+        return res.status(404).json({
+            error: "Not found: Assessment not found",
+        });
+    }
+
+    // if (req.body.score == "-") {
+    //     await deleteAttendanceRecord(req.body.studentId, req.body.lessonId);
+    // } else {
+        const record = await updateScoreRecord(
+            req.body.studentId,
+            req.body.assessmentId,
+            req.body.score,
+        );
+        if (!record) {
+            return res.status(500).json({
+                error: "Internal server error: Attendance update failed",
+            });
+        }
+    // }
+
+    res.sendStatus(200);
+};
 
 export {
     getDayLessons,
@@ -576,5 +716,7 @@ export {
     updateLessonAssessment,
     updateAssessmentSystem,
     getAttendance,
-    updateAttendance
+    updateAttendance,
+    getAssessmentScores,
+    updateScore,
 };

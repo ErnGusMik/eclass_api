@@ -17,6 +17,7 @@ import {
     checkIfAssessmentExistsByID,
     createAssessment,
     deleteAssessment,
+    doubleCheckIfAssessmentExists,
     editAssessment,
     editAssessmentSystem,
     getAssessment,
@@ -650,6 +651,7 @@ const updateScore = async (req, res, next) => {
         !req.body ||
         !req.body.lessonId ||
         !req.body.studentId ||
+        !req.body.assessmentId ||
         !req.body.score
     ) {
         return res.status(400).json({
@@ -681,27 +683,26 @@ const updateScore = async (req, res, next) => {
         });
     }
 
-    const assessmentExists = await doubleCheckIfAssessmentExists(req.body.assessmentId, classId);
+    const assessmentExists = await doubleCheckIfAssessmentExists(
+        req.body.assessmentId,
+        req.body.lessonId
+    );
     if (!assessmentExists) {
         return res.status(404).json({
             error: "Not found: Assessment not found",
         });
     }
 
-    // if (req.body.score == "-") {
-    //     await deleteAttendanceRecord(req.body.studentId, req.body.lessonId);
-    // } else {
-        const record = await updateScoreRecord(
-            req.body.studentId,
-            req.body.assessmentId,
-            req.body.score,
-        );
-        if (!record) {
-            return res.status(500).json({
-                error: "Internal server error: Attendance update failed",
-            });
-        }
-    // }
+    const record = await updateScoreRecord(
+        req.body.studentId,
+        req.body.assessmentId,
+        req.body.score
+    );
+    if (!record) {
+        return res.status(500).json({
+            error: "Internal server error: Attendance update failed",
+        });
+    }
 
     res.sendStatus(200);
 };

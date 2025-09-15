@@ -11,6 +11,7 @@ import serviceAccount from './firebaseServiceAccountKey.json' with { type: 'json
 
 
 import admin from 'firebase-admin';
+import studentRouter from './routes/student/lesssons.routes.js';
 
 configDotenv();
 
@@ -38,6 +39,7 @@ app.use('/teacher/lesson/', teacherLessonRouter)
 app.use('/teacher/class/', teacherClassRouter)
 app.use('/notices', noticesRouter)
 app.use('/schedules/', scheduleRouter)
+app.use('/student/', studentRouter)
 
 
 app.listen(PORT, async () => {

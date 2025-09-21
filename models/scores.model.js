@@ -37,7 +37,19 @@ const updateScoreRecord = async (studentId, assessmentId, score, classId) => {
 
 };
 
+const getScore = async (studentId, assessmentId) => {
+    const query = `
+        SELECT score
+        FROM scores
+        WHERE student_id = $1 AND assessment_id = $2
+    `;
+    const values = [studentId, assessmentId];
+    const result = await pool.query(query, values);
+    return result.rows[0] ? result.rows[0].score : null;
+}
+
 export {
     getScores,
-    updateScoreRecord
+    updateScoreRecord,
+    getScore
 }

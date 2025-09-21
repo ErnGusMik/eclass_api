@@ -34,7 +34,6 @@ const postAttendanceRecord = async (studentId, lessonId, status, classId) => {
     } else {
         return false;
     }
-
 };
 
 const deleteAttendanceRecord = async (studentId, lessonId) => {
@@ -54,4 +53,25 @@ const deleteAttendanceRecord = async (studentId, lessonId) => {
     }
 };
 
-export { getLessonAttendance, postAttendanceRecord, deleteAttendanceRecord };
+const getStudentAttendance = async (studentId, lessonId) => {
+    const query = await pool.query(
+        `
+        SELECT status FROM attendance
+        WHERE student_id = $1 AND lesson_id = $2
+        `,
+        [studentId, lessonId]
+    );
+
+    if (query.rows.length > 0) {
+        return query.rows[0].status;
+    } else {
+        return false;
+    }
+};
+
+export {
+    getLessonAttendance,
+    postAttendanceRecord,
+    deleteAttendanceRecord,
+    getStudentAttendance,
+};
